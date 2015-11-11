@@ -16,7 +16,7 @@ class WordPress
     protected $config = [];
 
     /** @var array Required env variables */
-    protected $required = ['DB_NAME', 'DB_USER', 'DB_PASSWORD', 'WP_HOME'];
+    protected $required = ['DB_NAME', 'WP_HOME'];
 
     /** @var array List of WordPress configuration constants */
     protected $minimal = [
@@ -36,6 +36,8 @@ class WordPress
         'PUBLIC_DIR' => '/public',
         'CONTENT_DIR' => '/app',
         'WORDPRESS_DIR' => '/wp',
+        'DB_USER' => 'root',
+        'DB_PASSWORD' => 'root',
         'DB_HOST' => 'localhost',
         'DB_CHARSET' => 'utf8',
         'DB_COLLATE' => '',
@@ -213,7 +215,7 @@ class WordPress
      */
     protected function getEnvConfig($name, $env = 'development')
     {
-        $default =  $this->getArrayDot($this->config, $name, null);
+        $default = $this->getArrayDot($this->config, $name, null);
         $env = $this->getArrayDot($this->config, "env.{$env}.{$name}", null);
 
         // get merged subtree
@@ -236,7 +238,8 @@ class WordPress
      * @param null $default
      * @return null
      */
-    protected function getArrayDot(&$context, $name, $default = null) {
+    protected function getArrayDot(&$context, $name, $default = null)
+    {
         $pieces = explode('.', $name);
         foreach ($pieces as $piece) {
             if (!is_array($context) || !array_key_exists($piece, $context)) {
