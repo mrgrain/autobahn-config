@@ -67,6 +67,7 @@ class WordPress
             $this->loadEnv();
             $this->setPhpIni(getenv('WP_ENV') ?: 'development');
             $this->setConfig(getenv('WP_ENV') ?: 'development');
+            $this->registerMuLoaderLoader();
         } catch (\RuntimeException $e) {
             die('<h1>Configuration could not be loaded.</h1>');
         }
@@ -249,5 +250,64 @@ class WordPress
             $context = &$context[$piece];
         }
         return $context;
+    }
+
+    /**
+     * Register the mu-loader loader with wordpress action array
+     */
+    protected function registerMuLoaderLoader()
+    {
+        // Add mu loader if set
+        if (defined('WPMU_LOADER')) {
+            $this->addFilter('muplugins_loaded', function () {
+                if (defined('WPMU_LOADER') && file_exists(WPMU_PLUGIN_DIR . DIRECTORY_SEPARATOR . WPMU_LOADER)) {
+                    require_once(WPMU_PLUGIN_DIR . DIRECTORY_SEPARATOR . WPMU_LOADER);
+                }
+            }, PHP_INT_MIN);
+        }
+    }
+
+    /**
+     * Add a WordPress filter before WordPress is loaded
+     * @param $tag
+     * @param $function_to_add
+     * @param int $priority
+     * @param int $accepted_args
+     * @return bool
+     */
+    protected function addFilter($tag, $function_to_add, $priority = 10, $accepted_args = 1)
+    {
+        global $wp_filter;
+
+        $idx = $this->filterBuildUniqueId($function_to_add);
+        $wp_filter[$tag][$priority][$idx] = array('function' => $function_to_add, 'accepted_args' => $accepted_args);
+        return true;
+    }
+
+    /**
+     * Helper to generate a unique ID
+     * @param $function
+     * @return array|string
+     */
+    private function filterBuildUniqueId($function)
+    {
+        if (is_string($function)) {
+            return $function;
+        }
+
+        if (is_object($function)) {
+            // Closures are currently implemented as objects
+            $function = array($function, '');
+        } else {
+            $function = (array)$function;
+        }
+
+        if (is_object($function[0])) {
+            return spl_object_hash($function[0]) . $function[1];
+
+        } elseif (is_string($function[0])) {
+            // Static Calling
+            return $function[0] . '::' . $function[1];
+        }
     }
 }
