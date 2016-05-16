@@ -257,6 +257,11 @@ class WordPress
      */
     protected function registerMuLoaderLoader()
     {
+        // define PHP_INT_MIN
+        if (!defined('PHP_INT_MIN')) {
+            define('PHP_INT_MIN', ~PHP_INT_MAX);
+        }
+
         // Add mu loader if set
         if (defined('WPMU_LOADER')) {
             $this->addFilter('muplugins_loaded', function () {
