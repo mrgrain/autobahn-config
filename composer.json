@@ -1,20 +1,33 @@
 {
   "name": "mrgrain/autobahn-config",
   "description": "Automatic WordPress configuration via environment and JSON files.",
-  "minimum-stability": "beta",
+  "minimum-stability": "stable",
   "license": "GPL-3.0+",
-  "keywords": ["wordpress", "config", "configuration", "composer", "wp"],
+  "keywords": [
+    "wordpress",
+    "config",
+    "configuration",
+    "composer",
+    "wp"
+  ],
   "authors": [
     {
       "name": "Moritz Kornher",
       "email": "mail@moritzkornher.de"
     }
   ],
+  "extra": {
+    "branch-alias": {
+      "dev-master": "1.2.x-dev"
+    }
+  },
   "require": {
     "php": ">=5.4",
     "vlucas/phpdotenv": "^2.0"
   },
   "autoload": {
-    "psr-4": {"Autobahn\\": "src"}
+    "psr-4": {
+      "Autobahn\\": "src"
+    }
   }
 }

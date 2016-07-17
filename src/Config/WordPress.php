@@ -169,10 +169,22 @@ class WordPress
      */
     protected function getJsonConfig($file)
     {
-        if (file_exists($this->path . DIRECTORY_SEPARATOR . $file)) {
-            return json_decode(file_get_contents($this->path . DIRECTORY_SEPARATOR . $file), true);
+        // check if file exists
+        $configFile = $this->path . DIRECTORY_SEPARATOR . $file;
+        if (!file_exists($this->path . DIRECTORY_SEPARATOR . $file)) {
+            trigger_error("Couldn't load Autobahn config from `{$configFile}`: File not found.", E_USER_NOTICE);
+            return [];
         }
-        return [];
+
+        // read config
+        $config = json_decode(file_get_contents($configFile), true);
+
+        // invalid json
+        if (is_null($config)) {
+            trigger_error("'Couldn't load Autobahn config from `{$configFile}`: Invalid JSON (" . json_last_error_msg() . ").", E_USER_WARNING);
+        }
+
+        return $config;
     }
 
 
