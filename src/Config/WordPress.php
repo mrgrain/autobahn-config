@@ -53,6 +53,11 @@ class WordPress
      */
     public function __construct($path, $config = 'autobahn.json')
     {
+        // define PHP_INT_MIN
+        if (!defined('PHP_INT_MIN')) {
+            define('PHP_INT_MIN', ~PHP_INT_MAX);
+        }
+
         $this->path = $path;
         $this->config = $this->getJsonConfig($config);
         $this->dotenv = new Dotenv($path);
@@ -68,6 +73,7 @@ class WordPress
             $this->setPhpIni(getenv('WP_ENV') ?: 'development');
             $this->setConfig(getenv('WP_ENV') ?: 'development');
             $this->registerMuLoaderLoader();
+            $this->registerMultiSitePath();
         } catch (\RuntimeException $e) {
             die('<h1>Configuration could not be loaded.</h1>');
         }
@@ -267,13 +273,21 @@ class WordPress
     /**
      * Register the mu-loader loader with wordpress action array
      */
+    protected function registerMultiSitePath()
+    {
+        // Add mu loader if set
+        if (defined('WP_ALLOW_MULTISITE')) {
+            $this->addFilter('network_admin_url', function ($url) {
+                return str_replace('/wp-admin/network/', WORDPRESS_DIR . '/wp-admin/network/', $url);
+            }, PHP_INT_MIN);
+        }
+    }
+
+    /**
+     * Register the mu-loader loader with wordpress action array
+     */
     protected function registerMuLoaderLoader()
     {
-        // define PHP_INT_MIN
-        if (!defined('PHP_INT_MIN')) {
-            define('PHP_INT_MIN', ~PHP_INT_MAX);
-        }
-
         // Add mu loader if set
         if (defined('WPMU_LOADER')) {
             $this->addFilter('muplugins_loaded', function () {
