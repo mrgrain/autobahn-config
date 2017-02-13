@@ -45,6 +45,7 @@ class WordPress
         'LOGGED_IN_SALT',
         'NONCE_SALT',
         'ABSPATH',
+        'MULTISITE'
     ];
 
     /**
@@ -61,6 +62,7 @@ class WordPress
         'DB_HOST'       => 'localhost',
         'DB_CHARSET'    => 'utf8',
         'DB_COLLATE'    => '',
+        'MULTISITE'     => false,
     ];
 
     /** @var Dotenv $dotenv instance */
@@ -315,7 +317,7 @@ class WordPress
     protected function registerMultiSitePath()
     {
         // Add mu loader if set
-        if (defined('WP_ALLOW_MULTISITE')) {
+        if (defined('MULTISITE')) {
             $this->addFilter('network_admin_url', function ($url) {
                 return str_replace('/wp-admin/network/', WORDPRESS_DIR . '/wp-admin/network/', $url);
             }, PHP_INT_MIN);
