@@ -5,6 +5,7 @@ use Dotenv\Dotenv;
 
 /**
  * Configuration class for WordPress sites
+ *
  * @package Autobahn\Config
  */
 class WordPress
@@ -20,27 +21,46 @@ class WordPress
 
     /** @var array List of WordPress configuration constants */
     protected $minimal = [
-        'WP_ENV', 'WP_HOME',
-        'PUBLIC_DIR', 'CONTENT_DIR', 'WORDPRESS_DIR',
-        'WP_SITEURL', 'WP_CONTENT_DIR', 'WP_CONTENT_URL',
-        'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_HOST', 'DB_CHARSET', 'DB_COLLATE', 'DB_PREFIX',
-        'AUTH_KEY', 'SECURE_AUTH_KEY', 'LOGGED_IN_KEY', 'NONCE_KEY', 'AUTH_SALT', 'SECURE_AUTH_SALT', 'LOGGED_IN_SALT', 'NONCE_SALT',
+        'WP_ENV',
+        'WP_HOME',
+        'PUBLIC_DIR',
+        'CONTENT_DIR',
+        'WORDPRESS_DIR',
+        'WP_SITEURL',
+        'WP_CONTENT_DIR',
+        'WP_CONTENT_URL',
+        'DB_NAME',
+        'DB_USER',
+        'DB_PASSWORD',
+        'DB_HOST',
+        'DB_CHARSET',
+        'DB_COLLATE',
+        'DB_PREFIX',
+        'AUTH_KEY',
+        'SECURE_AUTH_KEY',
+        'LOGGED_IN_KEY',
+        'NONCE_KEY',
+        'AUTH_SALT',
+        'SECURE_AUTH_SALT',
+        'LOGGED_IN_SALT',
+        'NONCE_SALT',
         'ABSPATH',
     ];
 
     /**
      * Default values for some configuration entries
+     *
      * @var array
      */
     protected $defaults = [
-        'PUBLIC_DIR' => '/public',
-        'CONTENT_DIR' => '/app',
+        'PUBLIC_DIR'    => '/public',
+        'CONTENT_DIR'   => '/app',
         'WORDPRESS_DIR' => '/wp',
-        'DB_USER' => 'root',
-        'DB_PASSWORD' => 'root',
-        'DB_HOST' => 'localhost',
-        'DB_CHARSET' => 'utf8',
-        'DB_COLLATE' => '',
+        'DB_USER'       => 'root',
+        'DB_PASSWORD'   => 'root',
+        'DB_HOST'       => 'localhost',
+        'DB_CHARSET'    => 'utf8',
+        'DB_COLLATE'    => '',
     ];
 
     /** @var Dotenv $dotenv instance */
@@ -48,7 +68,8 @@ class WordPress
 
     /**
      * WordPress constructor.
-     * @param string $path Root path of the local installation (where autobahn.json is).
+     *
+     * @param string $path   Root path of the local installation (where autobahn.json is).
      * @param string $config The local configuration file.
      */
     public function __construct($path, $config = 'autobahn.json')
@@ -58,7 +79,7 @@ class WordPress
             define('PHP_INT_MIN', ~PHP_INT_MAX);
         }
 
-        $this->path = $path;
+        $this->path   = $path;
         $this->config = $this->getJsonConfig($config);
         $this->dotenv = new Dotenv($path);
     }
@@ -82,7 +103,9 @@ class WordPress
 
     /**
      * Get a config value
+     *
      * @param $config
+     *
      * @return mixed
      */
     public function getConfig($config)
@@ -92,6 +115,7 @@ class WordPress
 
     /**
      * Get a default options
+     *
      * @return mixed|null
      */
     public function getOptions()
@@ -101,7 +125,9 @@ class WordPress
 
     /**
      * Get a default option value
+     *
      * @param $option
+     *
      * @return mixed|null
      */
     public function getOption($option)
@@ -125,6 +151,7 @@ class WordPress
 
     /**
      * Set custom PHP ini settings
+     *
      * @param string $env Current environment
      */
     protected function setPhpIni($env = 'development')
@@ -136,7 +163,9 @@ class WordPress
 
     /**
      * Get the
+     *
      * @param string $env Current environment
+     *
      * @return array
      */
     protected function getPhpIni($env = 'development')
@@ -148,6 +177,7 @@ class WordPress
 
     /**
      * Set the WordPress configuration constants
+     *
      * @param string $env Current environment
      */
     protected function setConfig($env = 'development')
@@ -170,7 +200,9 @@ class WordPress
 
     /**
      * Get the contents of the local configuration file
+     *
      * @param $file
+     *
      * @return array
      */
     protected function getJsonConfig($file)
@@ -187,7 +219,8 @@ class WordPress
 
         // invalid json
         if (is_null($config)) {
-            trigger_error("'Couldn't load Autobahn config from `{$configFile}`: Invalid JSON (" . json_last_error_msg() . ").", E_USER_WARNING);
+            trigger_error("'Couldn't load Autobahn config from `{$configFile}`: Invalid JSON (" . json_last_error_msg() . ").",
+                E_USER_WARNING);
         }
 
         return $config;
@@ -196,8 +229,10 @@ class WordPress
 
     /**
      * Get default config value, if real one does not exist
+     *
      * @param $name
      * @param $real
+     *
      * @return mixed
      */
     protected function getDefault($name, $real)
@@ -228,14 +263,16 @@ class WordPress
 
     /**
      * Get the environment depend config value in dot syntax
-     * @param $name
+     *
+     * @param        $name
      * @param string $env
+     *
      * @return null|mixed
      */
     protected function getEnvConfig($name, $env = 'development')
     {
         $default = $this->getArrayDot($this->config, $name, null);
-        $env = $this->getArrayDot($this->config, "env.{$env}.{$name}", null);
+        $env     = $this->getArrayDot($this->config, "env.{$env}.{$name}", null);
 
         // get merged subtree
         if (is_array($default) && is_array($env)) {
@@ -252,9 +289,11 @@ class WordPress
 
     /**
      * Retrieve a value from an array in dot syntax
-     * @param $context
-     * @param $name
+     *
+     * @param      $context
+     * @param      $name
      * @param null $default
+     *
      * @return null
      */
     protected function getArrayDot(&$context, $name, $default = null)
@@ -300,24 +339,28 @@ class WordPress
 
     /**
      * Add a WordPress filter before WordPress is loaded
-     * @param $tag
-     * @param $function_to_add
+     *
+     * @param     $tag
+     * @param     $function_to_add
      * @param int $priority
      * @param int $accepted_args
+     *
      * @return bool
      */
     protected function addFilter($tag, $function_to_add, $priority = 10, $accepted_args = 1)
     {
         global $wp_filter;
 
-        $idx = $this->filterBuildUniqueId($function_to_add);
+        $idx                              = $this->filterBuildUniqueId($function_to_add);
         $wp_filter[$tag][$priority][$idx] = array('function' => $function_to_add, 'accepted_args' => $accepted_args);
         return true;
     }
 
     /**
      * Helper to generate a unique ID
+     *
      * @param $function
+     *
      * @return array|string
      */
     private function filterBuildUniqueId($function)
