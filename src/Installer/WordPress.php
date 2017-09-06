@@ -182,7 +182,6 @@ class WordPress
         }
     }
 
-
     /**
      * Create, fill and place WordPress menus.
      *
@@ -193,11 +192,11 @@ class WordPress
         $locations = [];
 
         foreach ($menus as $menu) {
-            $menu_id = $this->createMenu($menu->name);
+            $menu_id = $this->createMenu($menu['name']);
 
             if ($menu_id) {
-                $locations[$menu->location] = $menu_id;
-                $this->populateMenu($menu_id, $menu->items);
+                $locations[$menu['location']] = $menu_id;
+                $this->populateMenu($menu_id, $menu['items']);
             }
         }
 
@@ -233,9 +232,9 @@ class WordPress
         foreach ($menu_items as $menu_item) {
             wp_update_nav_menu_item($menu_id, 0, [
                 'menu-item-status' => 'publish',
-                'menu-item-type'   => 'custom',
-                'menu-item-title'  => $menu_item->menu_item_title,
-                'menu-item-url'    => $menu_item->menu_item_url
+                'menu-item-type'   => isset($menu_item['type']) ? $menu_item['type'] : 'custom',
+                'menu-item-title'  => $menu_item['title'],
+                'menu-item-url'    => $menu_item['url']
             ]);
         }
     }
