@@ -55,7 +55,7 @@ class WordPress
 
         // 4. Maybe set the permalink structure
         global $wp_rewrite;
-        if ($permalinks = $this->config->permalinks() && $wp_rewrite) {
+        if ($wp_rewrite && $permalinks = $this->config->permalinks()) {
             $this->setPermalinkStructure($wp_rewrite, $permalinks);
         }
 
@@ -70,13 +70,9 @@ class WordPress
      */
     public function disableDefaults()
     {
-        // Overwrite wp_install_defaults functions here if it doesn't exist yet.
-        // functions declared inside a function have global scope
-        if (!function_exists('wp_install_defaults')) :
-            function wp_install_defaults($user_id)
-            {
-            }
-        endif;
+        // Import the helper file in the global namespace and
+        // overwrite wp_install_defaults functions if it doesn't exist yet.
+        include('wp_install_defaults.php');
     }
 
     /**
