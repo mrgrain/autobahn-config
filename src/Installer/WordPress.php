@@ -226,12 +226,82 @@ class WordPress
     protected function populateMenu($menu_id, $menu_items)
     {
         foreach ($menu_items as $menu_item) {
-            wp_update_nav_menu_item($menu_id, 0, [
-                'menu-item-status' => 'publish',
-                'menu-item-type'   => isset($menu_item['type']) ? $menu_item['type'] : 'custom',
-                'menu-item-title'  => $menu_item['title'],
-                'menu-item-url'    => $menu_item['url']
-            ]);
+            if (isset($menu_item['title']) && isset($menu_item['type'])) {
+                wp_update_nav_menu_item($menu_id, 0, $this->getMenuItemData($menu_item['type'], $menu_item));
+            }
         }
+    }
+
+    /**
+     * Converts data for a menu item.
+     *
+     * @param string $type
+     * @param array  $data
+     *
+     * @return array
+     */
+    private function getMenuItemData($type, $data)
+    {
+        if ('page' == $type) {
+            return $this->getPageMenuItem($data);
+        }
+        if ('post' == $type) {
+            return $this->getPostMenuItem($data);
+        }
+
+        return $this->getCustomMenuItem($data);
+    }
+
+    /**
+     * Gets data for a new custom menu item.
+     *
+     * @param $menu_item
+     *
+     * @return array
+     */
+    private function getCustomMenuItem($menu_item)
+    {
+        return [
+            'menu-item-title'  => $menu_item['title'],
+            'menu-item-url'    => isset($menu_item['url']) ? $menu_item['url'] : '',
+            'menu-item-status' => 'publish',
+            'menu-item-type'   => 'custom'
+        ];
+    }
+
+    /**
+     * Gets data for a new page menu item.
+     *
+     * @param $menu_item
+     *
+     * @return array
+     */
+    private function getPageMenuItem($menu_item)
+    {
+        return [
+            'menu-item-title'     => $menu_item['title'],
+            'menu-item-object-id' => isset($menu_item['id']) ? $menu_item['id'] : 0,
+            'menu-item-object'    => 'page',
+            'menu-item-status'    => 'publish',
+            'menu-item-type'      => 'post_type'
+        ];
+    }
+
+    /**
+     * Gets data for a new post menu item.
+     *
+     * @param $menu_item
+     *
+     * @return array
+     */
+    private function getPostMenuItem($menu_item)
+    {
+        return [
+            'menu-item-title'     => $menu_item['title'],
+            'menu-item-object-id' => isset($menu_item['id']) ? $menu_item['id'] : 0,
+            'menu-item-object'    => 'post',
+            'menu-item-status'    => 'publish',
+            'menu-item-type'      => 'post_type'
+        ];
     }
 }
