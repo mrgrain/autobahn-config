@@ -113,6 +113,7 @@ class WordPress
         switch_theme($theme);
         $this->setThemeMods($mods);
         $this->createMenus($menus);
+        $this->setupSidebars();
     }
 
     /**
@@ -166,6 +167,24 @@ class WordPress
         update_option($option, $value);
     }
 
+    protected function setupSidebars()
+    {
+        $active_widgets = get_option('sidebars_widgets');
+        // collect widgets to be added to sidebars
+        foreach($this->config->theme()->sidebars as $sidebar => $widgets) {
+            $add_widgets = array();
+            foreach ($widgets as $widget => $contents) {
+                $add_widget = get_option('widget_' . $widget);
+                // add widget content to a specified widget (1)
+                $add_widget[1] = $contents;
+                update_option('widget_' . $widget, $add_widget);
+                // store the widget id to be added to active widgets
+                $add_widgets[] = $widget . '-1';
+            }
+            $active_widgets[$sidebar] = $add_widgets;
+        }
+        update_option('sidebars_widgets', $active_widgets);
+    }
     /**
      * Set theme mods.
      *
