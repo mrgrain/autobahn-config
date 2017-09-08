@@ -152,19 +152,21 @@ class WordPressConfiguration
         // only theme name is set
         if (is_string($this->theme)) {
             return (object)[
-                'name'    => $this->theme,
-                'mods'    => [],
-                'options' => [],
-                'menus'   => []
+                'name'     => $this->theme,
+                'mods'     => [],
+                'options'  => [],
+                'menus'    => [],
+                'sidebars' => []
             ];
         }
 
         // read theme setting
         return (object)[
-            'name'    => $this->theme->name,
-            'mods'    => isset($this->theme->mods) ? $this->theme->mods : [],
-            'options' => isset($this->theme->options) ? $this->theme->options : [],
-            'menus'   => isset($this->theme->menus) ? $this->theme->menus : []
+            'name'     => $this->theme->name,
+            'mods'     => isset($this->theme->mods) ? $this->theme->mods : [],
+            'options'  => isset($this->theme->options) ? $this->theme->options : [],
+            'menus'    => isset($this->theme->menus) ? $this->theme->menus : [],
+            'sidebars' => isset($this->theme->sidebars) ? $this->theme->sidebars : []
         ];
     }
 
