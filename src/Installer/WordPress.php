@@ -220,7 +220,8 @@ class WordPress
 
                 // add a new widget and retrieve id
                 $widget[] = $data;
-                $id       = key(end($widget));
+                end($widget);
+                $id = key($widget);
 
                 // save the widgets back to db
                 update_option('widget_' . $type, $widget);
