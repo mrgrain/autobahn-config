@@ -50,7 +50,7 @@ class WordPress
 
         // 3. Maybe set the theme (and settings)
         if ($theme = $this->config->theme()) {
-            $this->setTheme($theme->name, $theme->mods, $theme->options, $theme->menus);
+            $this->setTheme($theme->name, $theme->mods, $theme->options, $theme->menus, $theme->sidebars);
         }
 
         // 4. Maybe set the permalink structure
@@ -106,13 +106,15 @@ class WordPress
      * @param array  $mods
      * @param array  $options
      * @param array  $menus
+     * @param array  $sidebars
      */
-    public function setTheme($theme, array $mods = [], array $options = [], array $menus = [])
+    public function setTheme($theme, array $mods = [], array $options = [], array $menus = [], array $sidebars = [])
     {
         $this->setOptions($options);
         switch_theme($theme);
         $this->setThemeMods($mods);
         $this->createMenus($menus);
+        $this->setupSidebars($sidebars);
     }
 
     /**
@@ -200,6 +202,41 @@ class WordPress
     }
 
     /**
+     * Add widgets to the theme sidebars.
+     *
+     * @param $sidebars
+     */
+    protected function setupSidebars($sidebars)
+    {
+        // load current widget condig
+        $active_widgets = get_option('sidebars_widgets');
+
+        // collect widgets to be added to sidebars
+        foreach ($sidebars as $sidebar => $widgets) {
+            $new_widgets = [];
+            foreach ($widgets as $type => $data) {
+                // load all widgets for this type
+                $widget = get_option('widget_' . $type);
+
+                // add a new widget and retrieve id
+                $widget[] = $data;
+                end($widget);
+                $id = key($widget);
+
+                // save the widgets back to db
+                update_option('widget_' . $type, $widget);
+
+                // add the new widget id to active widgets
+                $new_widgets[] = $type . '-' . $id;
+            }
+            // set active widgets for sidebar
+            $active_widgets[$sidebar] = $new_widgets;
+        }
+        // save sidebars with widgets
+        update_option('sidebars_widgets', $active_widgets);
+    }
+
+    /**
      * Create a new WordPress menu.
      *
      * @param string $menu_name
@@ -226,12 +263,82 @@ class WordPress
     protected function populateMenu($menu_id, $menu_items)
     {
         foreach ($menu_items as $menu_item) {
-            wp_update_nav_menu_item($menu_id, 0, [
-                'menu-item-status' => 'publish',
-                'menu-item-type'   => isset($menu_item['type']) ? $menu_item['type'] : 'custom',
-                'menu-item-title'  => $menu_item['title'],
-                'menu-item-url'    => $menu_item['url']
-            ]);
+            if (isset($menu_item['title']) && isset($menu_item['type'])) {
+                wp_update_nav_menu_item($menu_id, 0, $this->getMenuItemData($menu_item['type'], $menu_item));
+            }
         }
+    }
+
+    /**
+     * Converts data for a menu item.
+     *
+     * @param string $type
+     * @param array  $data
+     *
+     * @return array
+     */
+    private function getMenuItemData($type, $data)
+    {
+        if ('page' == $type) {
+            return $this->getPageMenuItem($data);
+        }
+        if ('post' == $type) {
+            return $this->getPostMenuItem($data);
+        }
+
+        return $this->getCustomMenuItem($data);
+    }
+
+    /**
+     * Gets data for a new custom menu item.
+     *
+     * @param $menu_item
+     *
+     * @return array
+     */
+    private function getCustomMenuItem($menu_item)
+    {
+        return [
+            'menu-item-title'  => $menu_item['title'],
+            'menu-item-url'    => isset($menu_item['url']) ? $menu_item['url'] : '',
+            'menu-item-status' => 'publish',
+            'menu-item-type'   => 'custom'
+        ];
+    }
+
+    /**
+     * Gets data for a new page menu item.
+     *
+     * @param $menu_item
+     *
+     * @return array
+     */
+    private function getPageMenuItem($menu_item)
+    {
+        return [
+            'menu-item-title'     => $menu_item['title'],
+            'menu-item-object-id' => isset($menu_item['id']) ? $menu_item['id'] : 0,
+            'menu-item-object'    => 'page',
+            'menu-item-status'    => 'publish',
+            'menu-item-type'      => 'post_type'
+        ];
+    }
+
+    /**
+     * Gets data for a new post menu item.
+     *
+     * @param $menu_item
+     *
+     * @return array
+     */
+    private function getPostMenuItem($menu_item)
+    {
+        return [
+            'menu-item-title'     => $menu_item['title'],
+            'menu-item-object-id' => isset($menu_item['id']) ? $menu_item['id'] : 0,
+            'menu-item-object'    => 'post',
+            'menu-item-status'    => 'publish',
+            'menu-item-type'      => 'post_type'
+        ];
     }
 }
