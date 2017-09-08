@@ -50,7 +50,7 @@ class WordPress
 
         // 3. Maybe set the theme (and settings)
         if ($theme = $this->config->theme()) {
-            $this->setTheme($theme->name, $theme->mods, $theme->options, $theme->menus);
+            $this->setTheme($theme->name, $theme->mods, $theme->options, $theme->menus, $theme->sidebars);
         }
 
         // 4. Maybe set the permalink structure
@@ -106,14 +106,15 @@ class WordPress
      * @param array  $mods
      * @param array  $options
      * @param array  $menus
+     * @param array  $sidebars
      */
-    public function setTheme($theme, array $mods = [], array $options = [], array $menus = [])
+    public function setTheme($theme, array $mods = [], array $options = [], array $menus = [], array $sidebars = [])
     {
         $this->setOptions($options);
         switch_theme($theme);
         $this->setThemeMods($mods);
         $this->createMenus($menus);
-        $this->setupSidebars();
+        $this->setupSidebars($sidebars);
     }
 
     /**
@@ -167,24 +168,6 @@ class WordPress
         update_option($option, $value);
     }
 
-    protected function setupSidebars()
-    {
-        $active_widgets = get_option('sidebars_widgets');
-        // collect widgets to be added to sidebars
-        foreach($this->config->theme()->sidebars as $sidebar => $widgets) {
-            $add_widgets = array();
-            foreach ($widgets as $widget => $contents) {
-                $add_widget = get_option('widget_' . $widget);
-                // add widget content to a specified widget (1)
-                $add_widget[1] = $contents;
-                update_option('widget_' . $widget, $add_widget);
-                // store the widget id to be added to active widgets
-                $add_widgets[] = $widget . '-1';
-            }
-            $active_widgets[$sidebar] = $add_widgets;
-        }
-        update_option('sidebars_widgets', $active_widgets);
-    }
     /**
      * Set theme mods.
      *
@@ -216,6 +199,40 @@ class WordPress
         }
 
         set_theme_mod('nav_menu_locations', $locations);
+    }
+
+    /**
+     * Add widgets to the theme sidebars.
+     *
+     * @param $sidebars
+     */
+    protected function setupSidebars($sidebars)
+    {
+        // load current widget condig
+        $active_widgets = get_option('sidebars_widgets');
+
+        // collect widgets to be added to sidebars
+        foreach ($sidebars as $sidebar => $widgets) {
+            $new_widgets = [];
+            foreach ($widgets as $type => $data) {
+                // load all widgets for this type
+                $widget = get_option('widget_' . $type);
+
+                // add a new widget and retrieve id
+                $widget[] = $data;
+                $id       = key(end($widget));
+
+                // save the widgets back to db
+                update_option('widget_' . $type, $widget);
+
+                // add the new widget id to active widgets
+                $new_widgets[] = $type . '-' . $id;
+            }
+            // set active widgets for sidebar
+            $active_widgets[$sidebar] = $new_widgets;
+        }
+        // save sidebars with widgets
+        update_option('sidebars_widgets', $active_widgets);
     }
 
     /**
